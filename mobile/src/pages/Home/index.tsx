@@ -1,23 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Feather as Icon } from '@expo/vector-icons';
-import { View, ImageBackground, Image, StyleSheet, Text, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ImageBackground, Image, StyleSheet, Text, Platform } from 'react-native';
 import { RectButton } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import RNPickerSelect from 'react-native-picker-select';
+
+interface IBGEUFResponse {
+  sigla: string,
+};
+
+interface IBGECityResponse {
+  nome: string
+};
+
+interface PickerSelect {
+  label: string,
+  value: string,
+}
 
 const Home = () => {
   const navigation = useNavigation();
-  const [uf, setUf] = useState('');
-  const [city, setCity] = useState('');
+  const [ufs, setUfs] = useState<PickerSelect[]>([]);
+  const [cities, setCities] = useState<PickerSelect[]>([]);
+  const [selectedUf, setSelectedUf] = useState<string>('0');
+  const [selectedCity, setSelectedCity] = useState<string>('0');
+
+  useEffect(() => {
+    axios.get<IBGEUFResponse[]>('https://servicodados.ibge.gov.br/api/v1/localidades/estados').then(response => {
+      const ufInitials = response.data.map(uf => ({
+        label: uf.sigla,
+        value: uf.sigla,
+      }));
+
+      setUfs(ufInitials);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (selectedUf === '0') {
+      setCities([]);
+      return;
+    }
+
+    axios.get<IBGECityResponse[]>(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios`).then(response => {
+      const cityNames = response.data.map(city => ({
+        label: city.nome,
+        value: city.nome,
+      }));
+
+      setCities(cityNames);
+    });
+  }, [selectedUf]);
 
   function handleNavigateToPoints() {
     navigation.navigate('Points', {
-      uf,
-      city,
+      uf: selectedUf,
+      city: selectedCity,
     });
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <>
       <ImageBackground
         source={require('../../assets/home-background.png')}
         style={styles.container}
@@ -33,22 +77,19 @@ const Home = () => {
         </View>
 
         <View style={styles.footer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite a UF"
-            value={uf}
-            maxLength={2}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            onChangeText={setUf}
+          <RNPickerSelect
+            onValueChange={(value: string) => setSelectedUf(value)}
+            items={ufs}
+            placeholder={{ label: 'Selecione a UF', value: '0' }}
+            style={pickerStyle}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Digite a cidade"
-            value={city}
-            autoCorrect={false}
-            onChangeText={setCity}
+          <RNPickerSelect
+            onValueChange={(value: string) => setSelectedCity(value)}
+            items={cities}
+            placeholder={{ label: 'Selecione a cidade', value: '0' }}
+            style={pickerStyle}
           />
+
           <RectButton style={styles.button} onPress={handleNavigateToPoints}>
             <View style={styles.buttonIcon}>
               <Icon name="arrow-right" color="#fff" size={24} />
@@ -59,9 +100,42 @@ const Home = () => {
           </RectButton>
         </View>
       </ImageBackground>
-    </KeyboardAvoidingView>
+    </>
   );
 }
+
+const pickerStyle = {
+	inputIOS: {
+		height: 60,
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    marginBottom: 8,
+    fontSize: 16,
+	},
+	inputAndroid: {
+		height: 60,
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    marginBottom: 8,
+    fontSize: 16,
+	},
+  underline: {
+    borderTopWidth: 0,
+  },
+  icon: {
+    borderLeftWidth: 0,
+    borderLeftColor: 'transparent',
+    borderTopWidth: 2,
+    borderTopColor: 'gray',
+    borderRightWidth: 2,
+    borderRightColor: 'gray',
+    width: 9,
+    height: 9,
+    right: 15,
+    top: 25,
+    transform: [{ translateY: 8 }, { rotate: '135deg' }],
+  }
+};
 
 const styles = StyleSheet.create({
   container: {
