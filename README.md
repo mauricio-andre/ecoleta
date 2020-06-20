@@ -10,7 +10,7 @@
 
 ## Sobre o projeto
 
-Este projeto foi desenvolvido no período de uma semana durante o evento *Next Level Week 01*. Neste evento usamos uma única linguagem de programação, o Javascript, para desenvolve o backend, frontend e o mobile do projeto.
+Este projeto foi desenvolvido no período de uma semana durante o evento *Next Level Week 01*. Neste evento usamos uma única linguagem de programação para desenvolve o backend, frontend e o mobile do projeto.
 
 Usando TypeScript demos superpoderes ao nosso projeto; usando expo aceleramos o desenvolvimento do mobile a mil por hora; colocando tudo em um monorepo com yarn a organização subiu de nível. Se você quiser usar monorepo em projetos com expo, consulte esse [link](https://github.com/expo/expo/tree/master/packages/expo-yarn-workspaces)
 
